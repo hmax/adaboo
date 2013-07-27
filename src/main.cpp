@@ -2,13 +2,15 @@
 
 #include "Image.h"
 #include "WeakClassifiers.h"
+#include "AdaBooster.h"
 
 extern template TImage;
 extern template TWeakClassifier;
-
+extern template TAdaBooster;
 using std::vector;
 
 int main(){
+	TAdaBooster boostah;
 	std::uint8_t data[256] = {140, 128, 135, 152, 155, 155, 157, 172, 128, 92, 104, 161, 154, 124,
                               140, 135, 153, 143, 148, 170, 157, 157, 110, 106, 158, 172, 135, 131, 164, 134,
                               140, 181, 151, 155, 161, 167, 152, 153, 139, 130, 97, 114, 125, 90, 130, 145,
@@ -26,8 +28,9 @@ int main(){
                               70, 50, 107, 87, 101, 100, 94, 74, 105, 102, 121, 114, 89, 47, 67, 58,
                               60, 55, 145, 92, 101, 126, 93, 100, 52, 94, 74, 72, 100, 51, 80, 57,
                               64, 61};
-	auto size = sizeof(TWeakClassifier);
+
 	vector<TWeakClassifier> weak_classifiers;
+	
 	weak_classifiers.reserve(16*16*16*16);
 
 	for (auto xi=0; xi < 16; xi++)
