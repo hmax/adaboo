@@ -1,16 +1,18 @@
 #include "AdaBooster.h"
 #include <algorithm>
 #include <numeric>
+#include <iostream>
+#include <cfloat>
 
 template <typename T> AdaBooster<T>::AdaBooster(){
 }
 
-template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_classifiers, vector<pair<T, int> > train_set, int number_of_classifiers){
-	vector<vector<double> > weights;
+template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_classifiers, TTrainSet train_set, int number_of_classifiers){
+	vector<vector<double> > weights(number_of_classifiers, vector<double>(train_set.size()));
 	size_t female_samples = 0;
 	size_t male_samples = 0;
 
-	for(const auto &sample : train_set){
+	for(const auto sample : train_set){
 		if(sample.second == 0)
 			male_samples++;
 		else
@@ -18,7 +20,7 @@ template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_cla
 	}
 
 	weights.reserve(number_of_classifiers);
-	for(auto &w : weights)
+	for(auto w : weights)
 		w.reserve(train_set.size());
 
 	for(auto i = 0; i < weights.at(0).size(); ++i){
@@ -31,7 +33,7 @@ template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_cla
 
 	//Actual AdaBoost adaptation from paper
 	for(auto classifier_number = 0; classifier_number < number_of_classifiers - 1; ++classifier_number){
-		auto& iteration_weights = weights.at(classifier_number);
+		auto iteration_weights = weights.at(classifier_number);
 		auto weight_norm = 0.0;
 
 		weight_norm = std::accumulate(iteration_weights.begin(), iteration_weights.end(), 0.0);
@@ -41,55 +43,61 @@ template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_cla
 		}
 
 		// Find weak classifier with least error
-		auto error = FLT_MAX;
+		double error = FLT_MAX;
 		auto classifier = *(weak_classifiers.begin()); // TODO: There's a copy going on, check out ting about fixing
-		for(auto& weak_classifier : weak_classifiers){
+		for(auto weak_classifier = weak_classifiers.cbegin(); weak_classifier != weak_classifiers.cend(); ++weak_classifier){
 			auto classifier_error = 0.0;
-			for(const auto& sample : train_set){
-				classifier_error += abs(weak_classifier.classify(sample.first) - sample.second);
+			auto sample = train_set.cbegin();
+			auto sample_weight = iteration_weights.cbegin();
+			
+			for(; sample != train_set.cend() && sample_weight != iteration_weights.cend(); ++sample, ++sample_weight){
+				int classsification_result = weak_classifier->classify(sample->first);
+				if(classsification_result != sample->second)
+					classifier_error += *sample_weight;
 			}
-
-			if(classifier_error < error){ // TODO: Check for floating point comparison handling
-				classifier = weak_classifier;
+			if(classifier_error < error){
+				classifier = *weak_classifier;
+				error = classifier_error;
 			}
 		}
+
 		classifiers.push_back(classifier);
 		errors.push_back(error);
 		
 		// Reweight samples
 		auto b = error / (1 - error);
+		auto iteration_weight = iteration_weights.cbegin();
+		auto next_iteration_weight = weights.at(classifier_number + 1).begin();
+		auto sample = train_set.cbegin();
 
-		auto& iteration_weight = iteration_weights.begin();
-		auto& next_iteration_weight = weights.at(classifier_number + 1).begin();
-
-		for (const auto& sample : train_set){
-			if(classifier.classify(sample.first) == sample.second){
-				*next_iteration_weight = *iteration_weight;
-			}
-			else{
+		for (; sample != train_set.cend() && iteration_weight != iteration_weights.cend() && next_iteration_weight != weights.at(classifier_number + 1).end();
+			++sample, ++iteration_weight, ++next_iteration_weight){
+			if(classifier.classify(sample->first) == sample->second){
 				*next_iteration_weight = (*iteration_weight) * b;
 			}
-			iteration_weight++;
-			next_iteration_weight++;
+			else{
+				*next_iteration_weight = *iteration_weight;
+			}
 		}
+		
 	}
-
 }
 
-template <typename T> bool AdaBooster<T>::classify(T object){
-	auto & error_it = this->errors.cbegin();
-	auto & classifier_it = this->classifiers.cbegin();
+template <typename T> unsigned char AdaBooster<T>::classify(T object){
+	auto error_it = this->errors.cbegin();
+	auto classifier_it = this->classifiers.cbegin();
 	
 	auto sum = 0.0;
 	for(; error_it != this->errors.end() && classifier_it != this->classifiers.end(); ++error_it, ++classifier_it){
 		auto b = (*error_it) / (1 - *error_it);
-		sum = (0.5 - (*classifier_it).classify(object)) * log(b);
+		auto object_class = (*classifier_it).classify(object);
+		sum += (0.5 - object_class) * log(b);
 	}
 
 	if(sum >= 0.0)
-		return true;
+		return 1;
 	else
-		return false;
+		return 0;
 
 }
 
@@ -97,4 +105,4 @@ template <typename T> void AdaBooster<T>::forget(){
 	this->classifiers.clear();
 }
 
-template AdaBooster<TImage>;
+template class AdaBooster<TImage>;

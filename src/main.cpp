@@ -1,43 +1,109 @@
 #include <vector>
+#include <istream>
+#include <fstream>
+#include <iostream>
+#include <cassert>
 
-#include "Image.h"
+#include "image.hpp"
 #include "WeakClassifiers.h"
 #include "AdaBooster.h"
 
-extern template TImage;
-extern template TWeakClassifier;
-extern template TAdaBooster;
+extern template class ComparingWeakClassifier<TImage>;
+extern template class AdaBooster<TImage>;
+
 using std::vector;
+using std::istream;
+using std::ifstream;
+
+TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height);
 
 int main(){
 	TAdaBooster boostah;
-	std::uint8_t data[256] = {140, 128, 135, 152, 155, 155, 157, 172, 128, 92, 104, 161, 154, 124,
-                              140, 135, 153, 143, 148, 170, 157, 157, 110, 106, 158, 172, 135, 131, 164, 134,
-                              140, 181, 151, 155, 161, 167, 152, 153, 139, 130, 97, 114, 125, 90, 130, 145,
-                              129, 155, 146, 175, 173, 181, 174, 170, 164, 165, 149, 145, 143, 135, 115, 134,
-                              133, 119, 154, 134, 187, 191, 195, 198, 160, 164, 138, 129, 128, 151, 136, 139,
-                              122, 109, 143, 94, 185, 183, 194, 203, 192, 199, 216, 198, 181, 160, 187, 178,
-                              140, 102, 116, 115, 187, 168, 141, 139, 178, 198, 221, 192, 188, 200, 204, 187,
-                              144, 64, 114, 126, 171, 84, 52, 66, 105, 173, 211, 168, 151, 143, 157, 154,
-                              114, 54, 96, 114, 158, 115, 99, 81, 105, 153, 170, 121, 54, 69, 77, 107,
-                              79, 66, 67, 82, 172, 131, 76, 58, 83, 151, 134, 89, 83, 69, 65, 81,
-                              53, 61, 95, 81, 146, 199, 194, 183, 180, 182, 169, 105, 63, 61, 54, 45,
-                              21, 30, 63, 89, 129, 189, 190, 192, 191, 187, 189, 191, 190, 158, 89, 28,
-                              34, 48, 154, 71, 77, 150, 190, 198, 199, 194, 191, 188, 174, 123, 40, 42,
-                              41, 42, 79, 74, 92, 76, 121, 168, 187, 193, 193, 182, 146, 70, 37, 50,
-                              70, 50, 107, 87, 101, 100, 94, 74, 105, 102, 121, 114, 89, 47, 67, 58,
-                              60, 55, 145, 92, 101, 126, 93, 100, 52, 94, 74, 72, 100, 51, 80, 57,
-                              64, 61};
-
 	vector<TWeakClassifier> weak_classifiers;
+	std::cout.sync_with_stdio(false);
+	ifstream file("D:\\Projects\\CV\\sex_identification\\data\\20x20\\samples00.vec",  ifstream::binary);
+
+	size_t width = 0, height = 0;
+	char* read_tmp = new char;
+	file.read(read_tmp, 1);
+	width = *read_tmp;
+	file.read(read_tmp, 1);
+	height = *read_tmp;
+	delete read_tmp;
+
+	weak_classifiers.reserve(width*width*height*height*5);
+
+	for (auto xi=0; xi < width; xi++)
+		for (auto xj=0; xj < width; xj++)
+			for (auto yi=0; yi < height; yi++)
+				for (auto yj=0; yj < height; yj++)
+					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::LESS));
+	for (auto xi=0; xi < width; xi++)
+		for (auto xj=0; xj < width; xj++)
+			for (auto yi=0; yi < height; yi++)
+				for (auto yj=0; yj < height; yj++)
+					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_5));
+	for (auto xi=0; xi < width; xi++)
+		for (auto xj=0; xj < width; xj++)
+			for (auto yi=0; yi < height; yi++)
+				for (auto yj=0; yj < height; yj++)
+					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_10));
+	for (auto xi=0; xi < width; xi++)
+		for (auto xj=0; xj < width; xj++)
+			for (auto yi=0; yi < height; yi++)
+				for (auto yj=0; yj < height; yj++)
+					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_25));
+	for (auto xi=0; xi < width; xi++)
+		for (auto xj=0; xj < width; xj++)
+			for (auto yi=0; yi < height; yi++)
+				for (auto yj=0; yj < height; yj++)
+					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_50));
+
+	TTrainSet train_set;
+
+	while(!file.eof()){
+		TTrainSample tmp = read_image_from_stream(file, width, height);
+		train_set.push_back(tmp);
+	}
+	/*for(auto& sample : train_set){
+		if(sample.second == 0)
+			std::cout << "Female" << "\n";
+		else if(sample.second == 1)
+			std::cout << "Male" << "\n";
+	}*/
+
+	size_t half_size = train_set.size() * 0.8;
+	TTrainSet train_partial_set(train_set.begin(), train_set.begin() + half_size);
+	TTrainSet check_set(train_set.begin() + half_size, train_set.end());
 	
-	weak_classifiers.reserve(16*16*16*16);
+	boostah.train(weak_classifiers, train_partial_set, 300);
+	auto right_classified = 0, wrong_classified = 0;
+	for(auto& sample : check_set){
+		if(boostah.classify(sample.first) == sample.second){
+			++right_classified;
+		}else{
+			++wrong_classified;
+		}
+	}
+	boostah.forget();
+	std::cout << "Right classification: " << right_classified << std::endl << "Wrong classification: " << wrong_classified << std::endl;
+	std::cout << "Total samples: " << train_set.size() << std::endl;
 
-	for (auto xi=0; xi < 16; xi++)
-		for (auto xj=0; xj < 16; xj++)
-			for (auto yi=0; yi < 16; yi++)
-				for (auto yj=0; yj < 16; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj));
-
-	TImage img(16, 16, data);
 }
+
+TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height){
+	char s = 0;
+	char* image_data = new char[width * height];
+	images_stream.read(image_data, width * height);
+	images_stream.read(&s, 1);
+	if(s == 255)
+		s = 0;
+	TImage read_image(width, height, (uint8_t*)image_data);
+	auto result = std::make_pair(read_image, (unsigned char)s);
+	return result;
+}
+// 1 byte: w
+// 1 byte: h
+// lots of fokken images
+// w*h bytes: image
+// 1 byte: sex (1 for male, 255 for female)

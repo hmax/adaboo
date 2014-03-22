@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
 
 template <typename T> class Image
@@ -7,9 +8,13 @@ template <typename T> class Image
 	size_t width, height;
 public:
 	explicit Image(void);
+	Image(const Image<T>& img);
+	Image<T>& operator= (const Image<T>& rhs);
 	Image(size_t width, size_t height, T* data);
 	T& at(size_t x, size_t y) const;
 	~Image(void);
 };
 
-typedef Image<std::uint8_t> TImage;
+#include "image_impl.hpp"
+
+using TImage = Image<std::uint8_t>;
