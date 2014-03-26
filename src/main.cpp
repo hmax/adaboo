@@ -2,14 +2,13 @@
 #include <istream>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <cassert>
+#include <memory>
 
 #include "image.hpp"
 #include "WeakClassifiers.h"
-#include "AdaBooster.h"
-
-extern template class ComparingWeakClassifier<TImage>;
-extern template class AdaBooster<TImage>;
+#include "AdaBooster.hpp"
 
 using std::vector;
 using std::istream;
@@ -17,11 +16,27 @@ using std::ifstream;
 
 TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height);
 
-int main(){
-	TAdaBooster boostah;
-	vector<TWeakClassifier> weak_classifiers;
+int main(int argc, char * argv[]){
 	std::cout.sync_with_stdio(false);
-	ifstream file("D:\\Projects\\CV\\sex_identification\\data\\20x20\\samples00.vec",  ifstream::binary);
+
+	if (argc != 3) {
+		std::cout << "Usage: sex_identification number_of_weak_classifiers path_to_sample_data" << std::endl;
+		return 1;
+	}
+
+	std::stringstream converter;
+	int number_of_weak_classifiers;
+	std::string samples_path(argv[2]);
+
+	converter << argv[1];
+	converter >> number_of_weak_classifiers;
+	
+
+	TAdaBooster boostah;
+	vector<std::shared_ptr<TAbstractWeakClassifier>> weak_classifiers;
+
+	// It does not care if there's no such path
+	ifstream file("/run/media/hmax/storage/Projects/CV/sex_identification/data/20x20/samples00.vec",  ifstream::binary);
 
 	size_t width = 0, height = 0;
 	char* read_tmp = new char;
@@ -33,31 +48,12 @@ int main(){
 
 	weak_classifiers.reserve(width*width*height*height*5);
 
-	for (auto xi=0; xi < width; xi++)
-		for (auto xj=0; xj < width; xj++)
-			for (auto yi=0; yi < height; yi++)
-				for (auto yj=0; yj < height; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::LESS));
-	for (auto xi=0; xi < width; xi++)
-		for (auto xj=0; xj < width; xj++)
-			for (auto yi=0; yi < height; yi++)
-				for (auto yj=0; yj < height; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_5));
-	for (auto xi=0; xi < width; xi++)
-		for (auto xj=0; xj < width; xj++)
-			for (auto yi=0; yi < height; yi++)
-				for (auto yj=0; yj < height; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_10));
-	for (auto xi=0; xi < width; xi++)
-		for (auto xj=0; xj < width; xj++)
-			for (auto yi=0; yi < height; yi++)
-				for (auto yj=0; yj < height; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_25));
-	for (auto xi=0; xi < width; xi++)
-		for (auto xj=0; xj < width; xj++)
-			for (auto yi=0; yi < height; yi++)
-				for (auto yj=0; yj < height; yj++)
-					weak_classifiers.push_back(TWeakClassifier(xi, xj, yi, yj, COMPARISON_OPERATION::WITHIN_50));
+	for (size_t xi=0; xi < width; xi++)
+		for (size_t xj = 0; xj < width; xj++)
+			for (size_t yi = 0; yi < height; yi++)
+				for (size_t yj = 0; yj < height; yj++){
+					weak_classifiers.push_back(std::make_shared<TLessClassifier>(xi, xj, yi, yj));
+				}
 
 	TTrainSet train_set;
 
@@ -76,7 +72,7 @@ int main(){
 	TTrainSet train_partial_set(train_set.begin(), train_set.begin() + half_size);
 	TTrainSet check_set(train_set.begin() + half_size, train_set.end());
 	
-	boostah.train(weak_classifiers, train_partial_set, 300);
+	boostah.train(weak_classifiers, train_partial_set, 2);
 	auto right_classified = 0, wrong_classified = 0;
 	for(auto& sample : check_set){
 		if(boostah.classify(sample.first) == sample.second){
@@ -92,10 +88,10 @@ int main(){
 }
 
 TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height){
-	char s = 0;
+	unsigned char s = 0;
 	char* image_data = new char[width * height];
 	images_stream.read(image_data, width * height);
-	images_stream.read(&s, 1);
+	images_stream.read((char*)&s, 1);
 	if(s == 255)
 		s = 0;
 	TImage read_image(width, height, (uint8_t*)image_data);

@@ -5,26 +5,19 @@ SET(IMAGE_HEADERS
   image_impl.hpp
 )
 
-SET(ADABOOST_SOURCE
-  WeakClassifiers.cpp
-  AdaBooster.cpp 
-)
-
 SET(ADABOOST_HEADERS
   WeakClassifiers.h
-  AdaBooster.h
+  AdaBooster.hpp
+  AdaBooster_impl.hpp
 )
  
-add_library (AdaBoost ${ADABOOST_SOURCE} ${ADABOOST_HEADERS} ${IMAGE_HEADERS})
 
 SET(SEX_IDENTIFICATION_SOURCE
   main.cpp
-  ComparingClassifiers.cpp
 )
 
 SET(SEX_IDENTIFICATION_HEADERS
-  ComparingClassifiers.h
+  WeakClassifiers.h ${IMAGE_HEADERS} ${ADABOOST_HEADERS}
 )
 
 add_executable (sex_identification ${SEX_IDENTIFICATION_SOURCE} ${SEX_IDENTIFICATION_HEADERS} ${IMAGE_HEADERS})
-target_link_libraries (sex_identification AdaBoost)

@@ -1,13 +1,16 @@
-#include "AdaBooster.h"
+#pragma once
+
+#include "AdaBooster.hpp"
 #include <algorithm>
 #include <numeric>
 #include <iostream>
 #include <cfloat>
+#include <cmath>
 
 template <typename T> AdaBooster<T>::AdaBooster(){
 }
 
-template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_classifiers, TTrainSet train_set, int number_of_classifiers){
+template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractWeakClassifier<T>>> weak_classifiers, TTrainSet train_set, int number_of_classifiers){
 	vector<vector<double> > weights(number_of_classifiers, vector<double>(train_set.size()));
 	size_t female_samples = 0;
 	size_t male_samples = 0;
@@ -44,19 +47,19 @@ template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_cla
 
 		// Find weak classifier with least error
 		double error = FLT_MAX;
-		auto classifier = *(weak_classifiers.begin()); // TODO: There's a copy going on, check out ting about fixing
-		for(auto weak_classifier = weak_classifiers.cbegin(); weak_classifier != weak_classifiers.cend(); ++weak_classifier){
+		auto classifier = *weak_classifiers.begin(); // TODO: There's a copy going on, check out ting about fixing
+		for(auto weak_classifier_it = weak_classifiers.cbegin(); weak_classifier_it != weak_classifiers.cend(); ++weak_classifier_it){
 			auto classifier_error = 0.0;
 			auto sample = train_set.cbegin();
 			auto sample_weight = iteration_weights.cbegin();
 			
 			for(; sample != train_set.cend() && sample_weight != iteration_weights.cend(); ++sample, ++sample_weight){
-				int classsification_result = weak_classifier->classify(sample->first);
+				int classsification_result = (*weak_classifier_it)->classify(sample->first);
 				if(classsification_result != sample->second)
 					classifier_error += *sample_weight;
 			}
 			if(classifier_error < error){
-				classifier = *weak_classifier;
+				classifier = *weak_classifier_it;
 				error = classifier_error;
 			}
 		}
@@ -72,7 +75,7 @@ template <typename T> void AdaBooster<T>::train(vector<TWeakClassifier> weak_cla
 
 		for (; sample != train_set.cend() && iteration_weight != iteration_weights.cend() && next_iteration_weight != weights.at(classifier_number + 1).end();
 			++sample, ++iteration_weight, ++next_iteration_weight){
-			if(classifier.classify(sample->first) == sample->second){
+			if(classifier->classify(sample->first) == sample->second){
 				*next_iteration_weight = (*iteration_weight) * b;
 			}
 			else{
@@ -90,7 +93,7 @@ template <typename T> unsigned char AdaBooster<T>::classify(T object){
 	auto sum = 0.0;
 	for(; error_it != this->errors.end() && classifier_it != this->classifiers.end(); ++error_it, ++classifier_it){
 		auto b = (*error_it) / (1 - *error_it);
-		auto object_class = (*classifier_it).classify(object);
+		auto object_class = (*classifier_it)->classify(object);
 		sum += (0.5 - object_class) * log(b);
 	}
 
