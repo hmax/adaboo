@@ -18,12 +18,6 @@ template<class T> class ComparingWeakClassifier : public AbstractWeakClassifier<
 		~ComparingWeakClassifier() {};
 
 		explicit ComparingWeakClassifier(const size_t xi, const size_t xj, const size_t yi, const size_t yj) : xi(xi), xj(xj), yi(yi), yj(yj) {};
-
-		bool operator==(const ComparingWeakClassifier<T> &rhs) const;
-		friend std::ostream& operator<< (std::ostream& stream, const ComparingWeakClassifier<T>& wc){
-				stream << "ComparingClassifier(" << wc.xi << ", " << wc.xj << ", " << wc.yi << ", " << wc.yj << ", " << static_cast<int>(wc.operation) << ")";
-				return stream;
-		};
 	protected:
 		size_t xi, xj, yi, yj;
 };
