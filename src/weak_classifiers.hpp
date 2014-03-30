@@ -32,7 +32,7 @@ template<class T> class LessComparingWeakClassifier : public ComparingWeakClassi
 
 template<class T> class RangeComparingWeakClassifier : public ComparingWeakClassifier<T>{
 	public:
-		explicit RangeComparingWeakClassifier(const size_t xi, const size_t xj, const size_t yi, const size_t yj, const typename T::value_type range) : range(range), ComparingWeakClassifier<T>(xi, xj, yi, yj) {};
+		explicit RangeComparingWeakClassifier(const size_t xi, const size_t xj, const size_t yi, const size_t yj, const typename T::value_type range) : ComparingWeakClassifier<T>(xi, xj, yi, yj), range(range) {};
 		unsigned char classify(const T& object) const{
 			return abs(object.at(this->xi, this->yi) - object.at(this->xj, this->yj)) < this->range;
 		};

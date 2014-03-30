@@ -6,7 +6,7 @@ SET(IMAGE_HEADERS
 )
 
 SET(ADABOOST_HEADERS
-  WeakClassifiers.h
+  weak_classifiers.hpp
   AdaBooster.hpp
   AdaBooster_impl.hpp
 )
@@ -17,7 +17,9 @@ SET(SEX_IDENTIFICATION_SOURCE
 )
 
 SET(SEX_IDENTIFICATION_HEADERS
-  WeakClassifiers.h ${IMAGE_HEADERS} ${ADABOOST_HEADERS}
+  weak_classifiers.hpp ${IMAGE_HEADERS} ${ADABOOST_HEADERS}
 )
+
+SET(CMAKE_CXX_FLAGS "-Weffc++ -Wall -pedantic -std=c++11")
 
 add_executable (sex_identification ${SEX_IDENTIFICATION_SOURCE} ${SEX_IDENTIFICATION_HEADERS} ${IMAGE_HEADERS})

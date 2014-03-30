@@ -1,25 +1,15 @@
 #include "image.hpp"
 #include <cstring>
-template <typename T> Image<T>::Image(void)
-{
-	this->data = nullptr;
-	this->width = 0;
-	this->height = 0;
-}
+template <typename T> Image<T>::Image(void) : data(nullptr), width(0), height(0) {}
 
-template <typename T> Image<T>::Image(size_t width, size_t height, T* data)
+
+template <typename T> Image<T>::Image(size_t width, size_t height, T* data) : data(new T[width * height]), width(width), height(height)
 {
-	this->data = new T[width * height];
-	this->width = width;
-	this->height = height;
 	memcpy(this->data, data, width*height);
 }
 
-template <typename T> Image<T>::Image(const Image<T>& img)
+template <typename T> Image<T>::Image(const Image<T>& img) : data(new T[img.width * img.height]), width(img.width), height(img.height)
 {
-	this->data = new T[img.width * img.height];
-	this->width = img.width;
-	this->height = img.height;
 	memcpy(this->data, img.data, width*height);
 }
 

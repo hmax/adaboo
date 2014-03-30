@@ -7,7 +7,7 @@
 #include <cfloat>
 #include <cmath>
 
-template <typename T> AdaBooster<T>::AdaBooster(){
+template <typename T> AdaBooster<T>::AdaBooster() : classifiers(), errors(){
 }
 
 template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractWeakClassifier<T>>> weak_classifiers, TTrainSet train_set, int number_of_classifiers){
@@ -82,7 +82,6 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 				*next_iteration_weight = *iteration_weight;
 			}
 		}
-		
 	}
 }
 
