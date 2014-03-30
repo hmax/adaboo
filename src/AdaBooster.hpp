@@ -4,7 +4,7 @@
 #include <utility>
 #include <memory>
 #include "image.hpp"
-#include "WeakClassifiers.h"
+#include "weak_classifiers.hpp"
 
 using std::pair;
 using std::vector;

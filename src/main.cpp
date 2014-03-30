@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "image.hpp"
-#include "WeakClassifiers.h"
+#include "weak_classifiers.hpp"
 #include "AdaBooster.hpp"
 
 using std::vector;
@@ -36,13 +36,18 @@ int main(int argc, char * argv[]){
 	vector<std::shared_ptr<TAbstractWeakClassifier>> weak_classifiers;
 
 	// It does not care if there's no such path
-	ifstream file("/run/media/hmax/storage/Projects/CV/sex_identification/data/20x20/samples00.vec",  ifstream::binary);
+
+	ifstream train_data_file(samples_path,  ifstream::binary);
+	if(!train_data_file){
+		std::cerr << "Can't open file " << samples_path << std::endl;
+		exit(1);
+	}
 
 	size_t width = 0, height = 0;
 	char* read_tmp = new char;
-	file.read(read_tmp, 1);
+	train_data_file.read(read_tmp, 1);
 	width = *read_tmp;
-	file.read(read_tmp, 1);
+	train_data_file.read(read_tmp, 1);
 	height = *read_tmp;
 	delete read_tmp;
 
@@ -53,12 +58,16 @@ int main(int argc, char * argv[]){
 			for (size_t yi = 0; yi < height; yi++)
 				for (size_t yj = 0; yj < height; yj++){
 					weak_classifiers.push_back(std::make_shared<TLessClassifier>(xi, xj, yi, yj));
+					weak_classifiers.push_back(std::make_shared<TWithinRangeClassifier>(xi, xj, yi, yj, 5));
+					weak_classifiers.push_back(std::make_shared<TWithinRangeClassifier>(xi, xj, yi, yj, 10));
+					weak_classifiers.push_back(std::make_shared<TWithinRangeClassifier>(xi, xj, yi, yj, 25));
+					weak_classifiers.push_back(std::make_shared<TWithinRangeClassifier>(xi, xj, yi, yj, 50));
 				}
 
 	TTrainSet train_set;
 
-	while(!file.eof()){
-		TTrainSample tmp = read_image_from_stream(file, width, height);
+	while(!train_data_file.eof()){
+		TTrainSample tmp = read_image_from_stream(train_data_file, width, height);
 		train_set.push_back(tmp);
 	}
 	/*for(auto& sample : train_set){
@@ -72,7 +81,7 @@ int main(int argc, char * argv[]){
 	TTrainSet train_partial_set(train_set.begin(), train_set.begin() + half_size);
 	TTrainSet check_set(train_set.begin() + half_size, train_set.end());
 	
-	boostah.train(weak_classifiers, train_partial_set, 2);
+	boostah.train(weak_classifiers, train_partial_set, number_of_weak_classifiers);
 	auto right_classified = 0, wrong_classified = 0;
 	for(auto& sample : check_set){
 		if(boostah.classify(sample.first) == sample.second){
