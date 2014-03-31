@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <numeric>
 #include <iostream>
-#include <cfloat>
+#include <limits>
 #include <cmath>
 
 template <typename T> AdaBooster<T>::AdaBooster() : classifiers(), errors(){
@@ -46,7 +46,7 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 		}
 
 		// Find weak classifier with least error
-		double error = FLT_MAX;
+		double error = std::numeric_limits<double>::max();
 		auto classifier = *weak_classifiers.begin(); // TODO: There's a copy going on, check out ting about fixing
 		for(auto weak_classifier_it = weak_classifiers.cbegin(); weak_classifier_it != weak_classifiers.cend(); ++weak_classifier_it){
 			auto classifier_error = 0.0;
