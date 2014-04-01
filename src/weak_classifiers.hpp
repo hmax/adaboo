@@ -9,10 +9,6 @@ template<typename T> class AbstractWeakClassifier{
 		virtual unsigned char classify(const T& object) const = 0;
 };
 
-enum class COMPARISON_OPERATION{
-	LESS, WITHIN_5, WITHIN_10, WITHIN_25, WITHIN_50
-};
-
 template<class T> class ComparingWeakClassifier : public AbstractWeakClassifier<T>{
 	public:
 		~ComparingWeakClassifier() {};
@@ -39,8 +35,3 @@ template<class T> class RangeComparingWeakClassifier : public ComparingWeakClass
 	private:
 		typename T::value_type range;
 	};
-
-typedef AbstractWeakClassifier<TImage> TAbstractWeakClassifier;
-typedef ComparingWeakClassifier<TImage> TWeakClassifier;
-typedef LessComparingWeakClassifier<TImage> TLessClassifier;
-typedef RangeComparingWeakClassifier<TImage> TWithinRangeClassifier;

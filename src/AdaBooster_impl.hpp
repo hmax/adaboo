@@ -10,7 +10,7 @@
 template <typename T> AdaBooster<T>::AdaBooster() : classifiers(), errors(){
 }
 
-template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractWeakClassifier<T>>> weak_classifiers, TTrainSet train_set, int number_of_classifiers){
+template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractWeakClassifier<T>>> weak_classifiers, TrainSet<T> train_set, int number_of_classifiers){
 	vector<vector<double> > weights(number_of_classifiers, vector<double>(train_set.size()));
 	size_t female_samples = 0;
 	size_t male_samples = 0;
@@ -47,7 +47,7 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 
 		// Find weak classifier with least error
 		double error = std::numeric_limits<double>::max();
-		auto classifier = *weak_classifiers.begin(); // TODO: There's a copy going on, check out ting about fixing
+		auto classifier = *weak_classifiers.begin(); // We're copying a shared_ptr here, feels ewie
 		for(auto weak_classifier_it = weak_classifiers.cbegin(); weak_classifier_it != weak_classifiers.cend(); ++weak_classifier_it){
 			auto classifier_error = 0.0;
 			auto sample = train_set.cbegin();
@@ -106,5 +106,3 @@ template <typename T> unsigned char AdaBooster<T>::classify(T object){
 template <typename T> void AdaBooster<T>::forget(){
 	this->classifiers.clear();
 }
-
-template class AdaBooster<TImage>;

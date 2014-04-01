@@ -14,6 +14,18 @@ using std::vector;
 using std::istream;
 using std::ifstream;
 
+
+
+using TImage = Image<std::uint8_t>;
+
+typedef AbstractWeakClassifier<TImage> TAbstractWeakClassifier;
+typedef ComparingWeakClassifier<TImage> TWeakClassifier;
+typedef LessComparingWeakClassifier<TImage> TLessClassifier;
+typedef RangeComparingWeakClassifier<TImage> TWithinRangeClassifier;
+typedef AdaBooster<TImage> TAdaBooster;
+typedef TrainSample<TImage> TTrainSample;
+typedef TrainSet<TImage> TTrainSet;
+
 TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height);
 
 int main(int argc, char * argv[]){
@@ -36,7 +48,6 @@ int main(int argc, char * argv[]){
 	vector<std::shared_ptr<TAbstractWeakClassifier>> weak_classifiers;
 
 	// It does not care if there's no such path
-
 	ifstream train_data_file(samples_path,  ifstream::binary);
 	if(!train_data_file){
 		std::cerr << "Can't open file " << samples_path << std::endl;
@@ -70,12 +81,6 @@ int main(int argc, char * argv[]){
 		TTrainSample tmp = read_image_from_stream(train_data_file, width, height);
 		train_set.push_back(tmp);
 	}
-	/*for(auto& sample : train_set){
-		if(sample.second == 0)
-			std::cout << "Female" << "\n";
-		else if(sample.second == 1)
-			std::cout << "Male" << "\n";
-	}*/
 
 	size_t half_size = train_set.size() * 0.8;
 	TTrainSet train_partial_set(train_set.begin(), train_set.begin() + half_size);

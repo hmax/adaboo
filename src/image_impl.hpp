@@ -35,5 +35,3 @@ template <typename T> Image<T>::~Image(void)
 {
 	delete[] data;
 }
-
-template class Image<std::uint8_t>;

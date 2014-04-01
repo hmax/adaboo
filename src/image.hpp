@@ -17,5 +17,3 @@ template <typename T> class Image
 };
 
 #include "image_impl.hpp"
-
-using TImage = Image<std::uint8_t>;
