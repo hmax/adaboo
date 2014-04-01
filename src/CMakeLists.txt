@@ -20,8 +20,4 @@ SET(SEX_IDENTIFICATION_HEADERS
   weak_classifiers.hpp ${IMAGE_HEADERS} ${ADABOOST_HEADERS}
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-	SET(CMAKE_CXX_FLAGS "-Weffc++ -Wall -pedantic -std=c++11")
-endif()
-
 add_executable (sex_identification ${SEX_IDENTIFICATION_SOURCE} ${SEX_IDENTIFICATION_HEADERS} ${IMAGE_HEADERS})
