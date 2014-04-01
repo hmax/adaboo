@@ -29,23 +29,20 @@ typedef TrainSet<TImage> TTrainSet;
 TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height);
 
 int main(int argc, char * argv[]){
-	std::cout.sync_with_stdio(false);
+	int number_of_weak_classifiers;
+	TAdaBooster boostah;
+	vector<std::shared_ptr<TAbstractWeakClassifier>> weak_classifiers;
 
+	std::cout.sync_with_stdio(false);
 	if (argc != 3) {
 		std::cout << "Usage: sex_identification number_of_weak_classifiers path_to_sample_data" << std::endl;
 		return 1;
 	}
 
 	std::stringstream converter;
-	int number_of_weak_classifiers;
 	std::string samples_path(argv[2]);
-
 	converter << argv[1];
 	converter >> number_of_weak_classifiers;
-	
-
-	TAdaBooster boostah;
-	vector<std::shared_ptr<TAbstractWeakClassifier>> weak_classifiers;
 
 	// It does not care if there's no such path
 	ifstream train_data_file(samples_path,  ifstream::binary);
@@ -55,12 +52,8 @@ int main(int argc, char * argv[]){
 	}
 
 	size_t width = 0, height = 0;
-	char* read_tmp = new char;
-	train_data_file.read(read_tmp, 1);
-	width = *read_tmp;
-	train_data_file.read(read_tmp, 1);
-	height = *read_tmp;
-	delete read_tmp;
+	train_data_file.read((char*)&width, 1);
+	train_data_file.read((char*)&height, 1);
 
 	weak_classifiers.reserve(width*width*height*height*5);
 
@@ -109,6 +102,7 @@ TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t
 	if(s == 255)
 		s = 0;
 	TImage read_image(width, height, (uint8_t*)image_data);
+	delete[] image_data;
 	auto result = std::make_pair(read_image, (unsigned char)s);
 	return result;
 }
