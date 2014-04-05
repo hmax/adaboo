@@ -33,5 +33,5 @@ template<class T> class RangeComparingWeakClassifier : public ComparingWeakClass
 			return abs(object.at(this->xi, this->yi) - object.at(this->xj, this->yj)) < this->range;
 		};
 	private:
-		typename T::value_type range;
+		const typename T::value_type range;
 	};
