@@ -11,7 +11,7 @@ template <typename T> AdaBooster<T>::AdaBooster() : classifiers(), errors(){
 }
 
 template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractWeakClassifier<T>>> weak_classifiers, TrainSet<T> train_set, int number_of_classifiers){
-	vector<vector<double> > weights(number_of_classifiers, vector<double>(train_set.size()));
+	vector<vector<double> > weights(number_of_classifiers + 1, vector<double>(train_set.size()));
 	size_t female_samples = 0;
 	size_t male_samples = 0;
 
@@ -22,7 +22,6 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 			female_samples++;
 	}
 
-	weights.reserve(number_of_classifiers);
 	for(auto w : weights)
 		w.reserve(train_set.size());
 
@@ -35,7 +34,7 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 
 
 	//Actual AdaBoost adaptation from paper
-	for(auto classifier_number = 0; classifier_number < number_of_classifiers - 1; ++classifier_number){
+	for(auto classifier_number = 0; classifier_number < number_of_classifiers; ++classifier_number){
 		auto iteration_weights = weights.at(classifier_number);
 		auto weight_norm = 0.0;
 
