@@ -101,7 +101,7 @@ TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t
 	images_stream.read((char*)&s, 1);
 	if(s == 255)
 		s = 0;
-	TImage read_image(width, height, (uint8_t*)image_data);
+	TImage read_image(width, height, (TImage::value_type*)image_data);
 	delete[] image_data;
 	auto result = std::make_pair(read_image, (unsigned char)s);
 	return result;
