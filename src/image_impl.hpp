@@ -2,11 +2,11 @@
 #include <cstring>
 
 template <typename T> Image<T>::Image(size_t width, size_t height, T* data) : data(new T[width * height]), width(width), height(height){
-	memcpy(this->data, data, width*height);
+	std::copy(this->data, this->data + width*height, data);
 }
 
 template <typename T> Image<T>::Image(const Image<T>& img) : data(new T[img.width * img.height]), width(img.width), height(img.height){
-	memcpy(this->data, img.data, width*height);
+	std::copy(this->data, this->data + width*height, img.data);
 }
 
 template<typename T> Image<T>& Image<T>::operator=( const Image<T>& rhs ) {
