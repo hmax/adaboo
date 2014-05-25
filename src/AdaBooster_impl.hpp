@@ -47,9 +47,9 @@ template <typename T> void AdaBooster<T>::train(vector<std::shared_ptr<AbstractW
 			auto classifier_error = 0.0;
 			auto sample = train_set.cbegin();
 			auto sample_weight = sample_weights.cbegin();
-
-			for (; sample != train_set.cend() && sample_weight != sample_weights.cend(); ++sample, ++sample_weight){
-				int classsification_result = (*weak_classifier_it)->classify(sample->first);
+			
+			for (int classsification_result; sample != train_set.cend() && sample_weight != sample_weights.cend(); ++sample, ++sample_weight){
+				classsification_result = (*weak_classifier_it)->classify(sample->first);
 				classifier_error += *sample_weight * (classsification_result ^ sample->second);  // Since classes are 0 and 1 we can use xor and multiplication to not confuse branch prediction here
 			}
 
