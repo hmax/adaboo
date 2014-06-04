@@ -7,6 +7,7 @@ template <typename T> Image<T>::Image(size_t width, size_t height, T* data) : m_
 
 template <typename T>
 template <typename F> Image<T>::Image(const Image<F>& img) : m_data(new T[img.width() * img.height()]), m_width(img.width()), m_height(img.height()){
+	// TODO: Add check for narrowing
 	std::copy(this->m_data, this->m_data + m_width * m_height, img.data());
 }
 
