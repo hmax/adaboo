@@ -1,13 +1,19 @@
 #include "image.hpp"
 #include <cstring>
 
-template <typename T> Image<T>::Image(size_t width, size_t height, T* data) : data(new T[width * height]), width(width), height(height){
-	std::copy(this->data, this->data + width*height, data);
+template <typename T> Image<T>::Image(size_t width, size_t height, T* data) : m_data(new T[width * height]), m_width(width), m_height(height){
+	std::copy(this->m_data, this->m_data + width*height, data);
 }
 
-template <typename T> Image<T>::Image(const Image<T>& img) : data(new T[img.width * img.height]), width(img.width), height(img.height){
-	std::copy(this->data, this->data + width*height, img.data);
+template <typename T>
+template <typename F> Image<T>::Image(const Image<F>& img) : m_data(new T[img.width() * img.height()]), m_width(img.width()), m_height(img.height()){
+	std::copy(this->m_data, this->m_data + m_width * m_height, img.data());
 }
+
+template <typename T> Image<T>::Image(const Image<T>& img) : m_data(new T[img.width() * img.height()]), m_width(img.width()), m_height(img.height()){
+	std::copy(this->m_data, this->m_data + m_width * m_height, img.data());
+}
+
 
 template<typename T> Image<T>& Image<T>::operator=( const Image<T>& rhs ) {
 	if (this != &rhs){
@@ -15,17 +21,18 @@ template<typename T> Image<T>& Image<T>::operator=( const Image<T>& rhs ) {
 		memcpy(this->data, rhs.data, rhs.width*rhs.height);
 		delete[] this->data;
 
-		this->width = rhs.width;
-		this->height = rhs.height;
-		this->data = new_data;
+		this->m_width = rhs.m_width;
+		this->m_height = rhs.m_height;
+		this->m_data = new_data;
 	};
 	return *this;
 }
 
-template<typename T> Image<T>::Image(Image<T>&& other) : data(other.data), width(other.width), height(other.height){ 
-	other.data = nullptr; 
-	other.width = 0;
-	other.height = 0;
+
+template<typename T> Image<T>::Image(Image<T>&& other) : m_data(other.m_data), m_width(other.m_width), m_height(other.m_height){
+	other.m_data = nullptr; 
+	other.m_width = 0;
+	other.m_height = 0;
 }
 
 template<typename T> Image<T>& Image<T>::operator= (const Image<T>&& rhs){
@@ -42,11 +49,15 @@ template<typename T> Image<T>& Image<T>::operator= (const Image<T>&& rhs){
 }
 
 
-template<typename T> T& Image<T>::at(size_t x, size_t y) const{
-	return this->data[this->width * y + x];
+template<typename T> T& Image<T>::at(size_t x, size_t y){
+	return this->m_data[this->m_width * y + x];
+}
+
+template<typename T> T Image<T>::at(size_t x, size_t y) const{
+	return this->m_data[this->m_width * y + x];
 }
 
 template <typename T> Image<T>::~Image(void){
 	// Should I check for nullptr? Using default
-	delete[] data;
+	delete[] m_data;
 }

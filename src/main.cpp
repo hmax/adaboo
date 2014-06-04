@@ -96,14 +96,15 @@ int main(int argc, char * argv[]){
 
 TTrainSample read_image_from_stream(istream& images_stream, size_t width, size_t height){
 	unsigned char s = 0;
-	char* image_data = new char[width * height];
-	images_stream.read(image_data, width * height);
+	TImage::value_type* image_data = new TImage::value_type[width * height];
+	images_stream.read((char*)image_data, width * height * sizeof(TImage::value_type));
 	images_stream.read((char*)&s, 1);
 	if(s == 255)
 		s = 0;
 	TImage read_image(width, height, (TImage::value_type*)image_data);
 	delete[] image_data;
-	auto result = std::make_pair(read_image, (unsigned char)s);
+
+	TTrainSample result = std::make_pair(TImage(read_image), (unsigned char)s);
 	return result;
 }
 // 1 byte: w
